@@ -1,0 +1,313 @@
+---
+title: "Da_project_G4"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+date: "2023-05-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Installing Packages
+
+```{r}
+install.packages("tidyverse")
+install.packages("readr")
+install.packages("scales")
+install.packages("caret")
+install.packages("stats")
+install.packages("dplyr")
+install.packages("glmnet")
+
+```
+
+Loading Packages
+```{r}
+library(tidyverse)
+library(readr)
+library(scales)
+library(caret)
+library(stats)
+library(dplyr)
+library(glmnet)
+```
+
+
+Importing the dataframe and Preprocessing the data
+- dropping the duplicates
+- Filling Missing values with Mean
+```{r}
+# Read the CSV file into a dataframe
+data <- read_csv('/Users/hymavathigummudala/Downloads/Spotify_data_combined.csv')
+data
+
+# Drop duplicates
+data <- distinct(data)
+data
+
+# Remove the rows where "popularity" equals 0
+data <- data %>% filter(popularity != 0)
+data
+
+# Replace missing values with the mean of the respective feature
+data <- data %>% mutate_all(funs(ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+data
+
+```
+Pre processing the data
+```{r}
+
+data$duration_ms <- data$duration_ms / 60000
+
+# Calculate the first quartile (Q1), third quartile (Q3), and interquartile range (IQR) for 'duration_ms'
+q1 <- quantile(data$duration_ms, 0.25)
+q3 <- quantile(data$duration_ms, 0.75)
+iqr <- q3 - q1
+
+# Calculate the threshold
+threshold <- q3 + 1.5 * iqr
+threshold
+
+# Filter the dataset to keep only the rows where 'duration_ms' is less than or equal to the threshold
+data <- data[data$duration_ms <= threshold,]
+
+# Reset the index of the filtered dataset
+row.names(data) <- NULL
+```
+
+- Converting the Popularity Contionous variable into Categorical Variable
+```{r}
+# compute the median popularity score
+popularity_median <- median(data$popularity)
+
+# create a new column 'popularity_category' based on the median threshold
+data <- data %>%
+  mutate(popularity = ifelse(popularity >= popularity_median, "popular", "not popular"))
+```
+
+- One hot Encoding done for three categorical variables
+```{r}
+# Perform one-hot encoding on the 'key', 'mode', and 'time_signature' features
+data$key <- as.factor(data$key)
+key_one_hot <- model.matrix(~key - 1, data = data)
+key_one_hot_df <- as.data.frame(key_one_hot)
+
+data$mode <- as.factor(data$mode)
+mode_one_hot <- model.matrix(~mode - 1, data = data)
+mode_one_hot_df <- as.data.frame(mode_one_hot)
+
+data$time_signature <- as.factor(data$time_signature)
+time_signature_one_hot <- model.matrix(~time_signature - 1, data = data)
+time_signature_one_hot_df <- as.data.frame(time_signature_one_hot)
+```
+
+- Normalizing the Data using the feature scaling technique
+```{r}
+# Combine the one-hot encoded columns with the original dataset
+data_encoded <- cbind(data, key_one_hot_df, mode_one_hot_df, time_signature_one_hot_df)
+
+# Remove the original 'key', 'mode', and 'time_signature' columns
+data_encoded <- data_encoded[, !(colnames(data_encoded) %in% c("key", "mode", "time_signature"))]
+
+```
+
+- Binary Category Conversion
+```{r}
+data_encoded$popularity <- ifelse(data_encoded$popularity == "not popular", 0, 1)
+```
+
+- Standarizing the data using Standard Scaler
+```{r}
+# Continuous variables including the one-hot encoded columns, but not 'popularity'
+continuous_vars <- c("acousticness", "danceability", "duration_ms", "energy", "instrumentalness", "liveness", "loudness", "speechiness", "tempo", "valence", colnames(key_one_hot_df), colnames(mode_one_hot_df), colnames(time_signature_one_hot_df))
+
+# Scale the continuous variables
+scaled_data <- scale(data_encoded[, continuous_vars])
+
+# Convert the scaled data to a data frame and rename the columns
+df_scaled_std <- as.data.frame(scaled_data)
+colnames(df_scaled_std) <- c(continuous_vars)
+
+# Add the "popularity" column back into the data frame
+df_scaled_std$popularity <- data_encoded$popularity
+
+```
+```{r}
+df_scaled_std
+```
+
+
+
+- Viewing Correlation Matrix
+```{r}
+corr_matrix <- cor(df_scaled_std)
+
+corr_matrix
+
+# calculate the Spearman correlation matrix
+corr_matrix <- cor(df_scaled_std, method = "spearman")
+
+corr_matrix
+```
+
+Modeling 
+- setting the seed
+- Splitting the data
+```{r}
+set.seed(42)
+
+# Define the feature matrix X and target variable y
+X <- df_scaled_std %>% select(-popularity)
+y <- df_scaled_std$popularity
+
+# Split the data into training and testing sets
+set.seed(42)
+split_index <- createDataPartition(y, p = 0.8, list = FALSE)
+X_train <- X[split_index,]
+X_test <- X[-split_index,]
+y_train <- y[split_index]
+y_test <- y[-split_index]
+
+```
+```{r}
+install.packages("DAAG")
+install.packages("crossval")
+```
+Model- 1
+Linear discriminant analysis 
+```{r}
+library(MASS)
+library(caret)
+library(crossval)
+library(DAAG)
+
+
+# Set the random seed for reproducibility
+set.seed(42)
+
+# Create an LDA model object
+lda <- lda(y_train ~ ., data = X_train)
+
+# Predict the target variable on the testing data
+y_pred <- predict(lda, newdata = X_test)
+
+# Calculate the accuracy of the model on the testing data
+accuracy <- mean(y_pred$class == y_test)
+cat(sprintf("Accuracy of the model: %.2f\n", accuracy))
+
+```
+
+Model-2 
+Quadratic Discriminant Analysis
+
+```{r}
+library(MASS)
+library(caret)
+
+# Set the random seed for reproducibility
+set.seed(42)
+
+# Perform PCA on the training data
+pca <- prcomp(X_train, center = TRUE, scale. = TRUE)
+
+# Decide the number of components to keep (e.g., 90% of the explained variance)
+explained_var_ratio <- pca$sdev^2 / sum(pca$sdev^2)
+cum_explained_var_ratio <- cumsum(explained_var_ratio)
+n_components <- which(cum_explained_var_ratio >= 0.90)[1]
+
+# Transform the training and testing data using the selected PCA components
+X_train_pca <- as.data.frame(pca$x[, 1:n_components])
+X_test_pca <- as.data.frame(predict(pca, newdata = X_test)[, 1:n_components])
+
+# Create a QDA model object
+qda <- qda(y_train ~ ., data = data.frame(X_train_pca, y_train))
+
+# Predict the target variable on the testing data
+y_pred <- predict(qda, newdata = X_test_pca)
+
+# Calculate the accuracy of the model on the testing data
+accuracy <- mean(y_pred$class == y_test)
+cat(sprintf("Accuracy of the model: %.2f\n", accuracy))
+
+
+
+```
+
+Model- 3
+K Nearest Neighbor
+
+```{r}
+library(class)
+library(caret)
+
+# Set the random seed for reproducibility
+set.seed(42)
+
+# Define different values of k to test
+k_values <- c(1, 3, 5)
+
+# Perform 5-fold cross-validation for KNN with different values of k
+for (k in k_values) {
+  # Create a KNN model object
+  knn <- knn(train = X_train, test = X_test, cl = y_train, k = k)
+  
+  # Calculate the accuracy of the model on the testing data
+  accuracy <- mean(knn == y_test)
+  cat(sprintf("Accuracy of the KNN model with k=%d: %.2f\n", k, accuracy))
+  
+}
+
+```
+```{r}
+install.packages("randomForest") # Install the package
+library(randomForest) # Load the package
+```
+
+
+Model-4
+Random Forest
+
+```{r}
+# Set the random seed for reproducibility
+set.seed(42)
+y_train <- factor(y_train)
+
+# Create a random forest classifier model object
+rf <- randomForest(y_train ~ ., data = data.frame(X_train, y_train), ntree = 100)
+
+# Predict the target variable on the testing data
+y_pred <- predict(rf, newdata = X_test)
+
+# Calculate the accuracy of the model on the testing data
+accuracy <- mean(y_pred == y_test)
+cat(sprintf("Accuracy of the model: %.2f\n", accuracy))
+
+
+
+```
+
+Out of the four models LDA,QDA, KNN with different folds, Random Forest
+Random forest has performed really good with accuracy of 0.64
