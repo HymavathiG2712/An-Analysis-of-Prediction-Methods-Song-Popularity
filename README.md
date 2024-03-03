@@ -2,6 +2,10 @@
 
 # Spotify Data Analytics Spring Project '23
 
+Predicting Song Popularity based on features like temp, pitch, loudness breaking the myth of Science behind music.
+
+Leveraged Knowledge in: R, Machine Learning, Regression, Classification, Python
+
 ## Flowchart
 
 ```mermaid
