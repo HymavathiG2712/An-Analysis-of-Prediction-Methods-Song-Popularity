@@ -2,7 +2,11 @@
 
 # Spotify Data Analytics Spring Project '23
 
+The project aimed to analyze song features and their impact on popularity using machine
+learning techniques. The goal was to identify which features correlate with and can predict
+a song's success on Spotify.
 Predicting Song Popularity based on features like temp, pitch, loudness breaking the myth of Science behind music.
+
 
 Leveraged Knowledge in: R, Machine Learning, Regression, Classification, Python
 
