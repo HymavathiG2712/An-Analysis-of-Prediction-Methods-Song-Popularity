@@ -4,17 +4,18 @@
 
 Leveraged Knowledge in: R, Machine Learning, Regression, Classification, Python
 
-Situation:
+**Situation**:
 A dataset containing information about songs, including features like artist name, duration, and popularity (ranging from 0 to 100), was available. The goal was to predict song popularity based on various features.
 
-Task:
+**Task**:
 
 Preprocess the dataset by handling duplicates, missing values, and converting variables.
 Perform exploratory data analysis and feature engineering.
 Split the dataset into training and testing sets.
 Utilize both classification and regression models to predict song popularity.
 Evaluate model performance and compare the results.
-Action:
+
+**Action**:
 
 Imported the dataset and preprocessed it by dropping duplicates, filtering out rows with zero popularity, and handling missing values.
 Engineered features by converting duration from milliseconds to seconds, converting popularity into a categorical variable, and one-hot encoding categorical variables.
@@ -23,7 +24,8 @@ Split the dataset into an 80-20 train-test split.
 Implemented classification models including LDA, QDA, KNN, and RF to predict song popularity categories. RF outperformed other models with an accuracy of 64%.
 Ran regression models including Linear Regression, Ridge Regression with Cross Validation, Lasso Regression with Cross Validation, and Decision Tree Regression to predict continuous song popularity.
 Evaluated model performance and observed that classification models yielded better results than regression models.
-Result:
+
+**Result**:
 The project successfully analyzed the dataset and predicted song popularity using both classification and regression techniques. Classification models demonstrated better performance compared to regression models, providing insights into factors influencing song popularity.
 
 
