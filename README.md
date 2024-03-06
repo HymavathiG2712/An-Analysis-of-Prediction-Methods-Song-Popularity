@@ -5,6 +5,7 @@
 Leveraged Knowledge in: R, Machine Learning, Regression, Classification, Python
 
 **Situation**:
+
 A dataset containing information about songs, including features like artist name, duration, and popularity (ranging from 0 to 100), was available. The goal was to predict song popularity based on various features.
 
 **Task**:
@@ -26,6 +27,7 @@ Ran regression models including Linear Regression, Ridge Regression with Cross V
 Evaluated model performance and observed that classification models yielded better results than regression models.
 
 **Result**:
+
 The project successfully analyzed the dataset and predicted song popularity using both classification and regression techniques. Classification models demonstrated better performance compared to regression models, providing insights into factors influencing song popularity.
 
 
