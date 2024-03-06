@@ -2,13 +2,30 @@
 
 # Spotify Data Analytics Spring Project '23
 
-The project aimed to analyze song features and their impact on popularity using machine
-learning techniques. The goal was to identify which features correlate with and can predict
-a song's success on Spotify.
-Predicting Song Popularity based on features like temp, pitch, loudness breaking the myth of Science behind music.
-
-
 Leveraged Knowledge in: R, Machine Learning, Regression, Classification, Python
+
+Situation:
+A dataset containing information about songs, including features like artist name, duration, and popularity (ranging from 0 to 100), was available. The goal was to predict song popularity based on various features.
+
+Task:
+
+Preprocess the dataset by handling duplicates, missing values, and converting variables.
+Perform exploratory data analysis and feature engineering.
+Split the dataset into training and testing sets.
+Utilize both classification and regression models to predict song popularity.
+Evaluate model performance and compare the results.
+Action:
+
+Imported the dataset and preprocessed it by dropping duplicates, filtering out rows with zero popularity, and handling missing values.
+Engineered features by converting duration from milliseconds to seconds, converting popularity into a categorical variable, and one-hot encoding categorical variables.
+Standardized the data using StandardScaler and viewed the correlation matrix to identify and remove highly correlated features.
+Split the dataset into an 80-20 train-test split.
+Implemented classification models including LDA, QDA, KNN, and RF to predict song popularity categories. RF outperformed other models with an accuracy of 64%.
+Ran regression models including Linear Regression, Ridge Regression with Cross Validation, Lasso Regression with Cross Validation, and Decision Tree Regression to predict continuous song popularity.
+Evaluated model performance and observed that classification models yielded better results than regression models.
+Result:
+The project successfully analyzed the dataset and predicted song popularity using both classification and regression techniques. Classification models demonstrated better performance compared to regression models, providing insights into factors influencing song popularity.
+
 
 ## Flowchart
 
